@@ -49,7 +49,7 @@ Sistem Informasi Akademik untuk manajemen jadwal kuliah Program Studi Pendidikan
 ## 📱 Cara Menggunakan
 
 1. Buka aplikasi di browser
-2. Masukkan password: **papberproses**
+2. Masukkan password:
 3. Pilih menu Jadwal atau Data Dosen
 4. Aktifkan Mode Edit untuk mengubah
 5. Klik Cetak untuk print
