@@ -1,0 +1,1462 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Jadwal Kuliah</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
+
+        // Simple icon components with className support
+        const Calendar = ({ className }) => <span className={className}>📅</span>;
+        const Users = ({ className }) => <span className={className}>👥</span>;
+        const Clock = ({ className }) => <span className={className}>🕐</span>;
+        const LogOut = ({ className }) => <span className={className}>🚪</span>;
+        const Printer = ({ className }) => <span className={className}>🖨️</span>;
+        const FileText = ({ className }) => <span className={className}>📄</span>;
+        const ChevronDown = ({ className }) => <span className={className}>▼</span>;
+        const Search = ({ className }) => <span className={className}>🔍</span>;
+        const X = ({ className }) => <span className={className}>✖</span>;
+        const BookOpen = ({ className }) => <span className={className}>📖</span>;
+        const User = ({ className }) => <span className={className}>👤</span>;
+        const Edit3 = ({ className }) => <span className={className}>✏️</span>;
+        const Save = ({ className }) => <span className={className}>💾</span>;
+        const ArrowRightLeft = ({ className }) => <span className={className}>⇄</span>;
+        const GripVertical = ({ className }) => <span className={className}>⋮</span>;
+        const Check = ({ className }) => <span className={className}>✓</span>;
+        const AlertCircle = ({ className }) => <span className={className}>⚠️</span>;
+        const PlusCircle = ({ className }) => <span className={className}>➕</span>;
+        const Trash2 = ({ className }) => <span className={className}>🗑️</span>;
+        const Download = ({ className }) => <span className={className}>⬇️</span>;
+        const Upload = ({ className }) => <span className={className}>⬆️</span>;
+        const AlertTriangle = ({ className }) => <span className={className}>⚠️</span>;
+        const Menu = ({ className }) => <span className={className}>☰</span>;
+        const ChevronLeft = ({ className }) => <span className={className}>◀</span>;
+        const ChevronRight = ({ className }) => <span className={className}>▶</span>;
+
+// --- DATA UTAMA (DATA FINAL & LENGKAP) ---
+const INITIAL_SCHEDULE_DATA = [
+  // --- SENIN: KELAS MC (A-J) - Microteaching ---
+  // Dr. Tutik Susilowati (A, B, C, D)
+  { id: 101, semester: "MC", day: "Senin", time: "07.30-09.10", class_name: "A", subject: "Micro Teaching", sks: "2", room: "LAB", lecturer: "Dr. Tutik Susilowati" },
+  { id: 102, semester: "MC", day: "Senin", time: "09.10-10.50", class_name: "B", subject: "Micro Teaching", sks: "2", room: "LAB", lecturer: "Dr. Tutik Susilowati" },
+  { id: 103, semester: "MC", day: "Senin", time: "12.40-14.20", class_name: "C", subject: "Micro Teaching", sks: "2", room: "LAB", lecturer: "Dr. Tutik Susilowati" },
+  { id: 104, semester: "MC", day: "Senin", time: "15.10-16.50", class_name: "D", subject: "Micro Teaching", sks: "2", room: "LAB", lecturer: "Dr. Tutik Susilowati" },
+  
+  // Dr. Tri Murwaningsih (E, F, G)
+  { id: 105, semester: "MC", day: "Senin", time: "07.30-09.10", class_name: "E", subject: "Micro Teaching", sks: "2", room: "R311", lecturer: "Dr. Tri Murwaningsih" },
+  { id: 106, semester: "MC", day: "Senin", time: "09.10-10.50", class_name: "F", subject: "Micro Teaching", sks: "2", room: "R311", lecturer: "Dr. Tri Murwaningsih" },
+  { id: 107, semester: "MC", day: "Senin", time: "12.40-14.20", class_name: "G", subject: "Micro Teaching", sks: "2", room: "R311", lecturer: "Dr. Tri Murwaningsih" },
+  
+  // Dr. Patni Ninghardjanti (H, I, J)
+  { id: 108, semester: "MC", day: "Senin", time: "07.30-09.10", class_name: "H", subject: "Micro Teaching", sks: "2", room: "R203", lecturer: "Dr. Patni Ninghardjanti" },
+  { id: 109, semester: "MC", day: "Senin", time: "09.10-10.50", class_name: "I", subject: "Micro Teaching", sks: "2", room: "R203", lecturer: "Dr. Patni Ninghardjanti" },
+  { id: 110, semester: "MC", day: "Senin", time: "12.40-14.20", class_name: "J", subject: "Micro Teaching", sks: "2", room: "R203", lecturer: "Dr. Patni Ninghardjanti" },
+
+  // --- SENIN & SELASA: KELAS PPG (DATA INI JANGAN DIHAPUS) ---
+  { id: 201, semester: "PPG", day: "Senin", time: "08.00-09.40", class_name: "A", subject: "Filosofi Pendidikan", sks: "2", room: "R202", lecturer: "Prof. Dr. C Dyah Sulistyaningrum" },
+  { id: 202, semester: "PPG", day: "Senin", time: "10.00-11.40", class_name: "A", subject: "Peserta Didik", sks: "2", room: "R203", lecturer: "Dr. Patni Ninghardjanti" },
+  { id: 203, semester: "PPG", day: "Senin", time: "12.40-14.20", class_name: "A", subject: "Growth Mindset", sks: "2", room: "R311", lecturer: "Dr. Tri Murwaningsih" },
+  { id: 204, semester: "PPG", day: "Senin", time: "15.10-16.50", class_name: "A", subject: "Inovasi Kejuruan", sks: "2", room: "RMICE", lecturer: "Anton Subarno, Ph.D" },
+  { id: 205, semester: "PPG", day: "Selasa", time: "08.00-09.40", class_name: "A", subject: "Pembelajaran Mendalam", sks: "2", room: "LAB", lecturer: "Dr. Tutik Susilowati" },
+
+  // --- SELASA S/D JUMAT: SEMESTER 2 (REGULER) ---
+  { id: 1, semester: 2, day: "Selasa", time: "07.30-10.00", class_name: "A", subject: "Manajemen Perkantoran", sks: "3", room: "R203", lecturer: "Prof. Dr. Hery Sawiji / Dr. Jumiyanto Widodo" },
+  { id: 31, semester: 2, day: "Selasa", time: "10.00-11.40", class_name: "A", subject: "Strategi Pembelajaran", sks: "2", room: "R202", lecturer: "Dr. Tri Murwaningsih" },
+  { id: 3, semester: 2, day: "Selasa", time: "10.00-11.40", class_name: "B", subject: "Pendidikan Pancasila", sks: "2", room: "R203", lecturer: "Prof. Dr. Hery Sawiji" },
+  { id: 4, semester: 2, day: "Selasa", time: "10.00-11.40", class_name: "C", subject: "Ilmu Organisasi", sks: "2", room: "R311", lecturer: "Dr. Jumiyanto Widodo / Dr. Patni Ninghardjanti" },
+  { id: 5, semester: 2, day: "Selasa", time: "10.00-11.40", class_name: "D", subject: "Bimbingan dan Konseling", sks: "2", room: "RMICE", lecturer: "Lilla Maturizka, M.Pd" },
+  { id: 6, semester: 2, day: "Selasa", time: "12.40-15.10", class_name: "B", subject: "Manajemen Perkantoran", sks: "3", room: "R203", lecturer: "Prof. Dr. Hery Sawiji / Dr. Jumiyanto Widodo" },
+  { id: 7, semester: 2, day: "Selasa", time: "15.10-17.40", class_name: "C", subject: "Manajemen Perkantoran", sks: "3", room: "R203", lecturer: "Prof. Dr. Hery Sawiji / Dr. Jumiyanto Widodo" },
+  
+  { id: 8, semester: 2, day: "Rabu", time: "07.30-10.00", class_name: "D", subject: "Manajemen Perkantoran", sks: "3", room: "R203", lecturer: "Prof. Dr. Hery Sawiji / Dr. Jumiyanto Widodo" },
+  { id: 9, semester: 2, day: "Rabu", time: "10.00-11.40", class_name: "A", subject: "Pendidikan Pancasila", sks: "2", room: "R203", lecturer: "Prof. Dr. Hery Sawiji" },
+  { id: 33, semester: 2, day: "Rabu", time: "10.00-11.40", class_name: "B", subject: "Strategi Pembelajaran", sks: "2", room: "R202", lecturer: "Dr. Tri Murwaningsih" },
+  { id: 11, semester: 2, day: "Rabu", time: "10.00-11.40", class_name: "C", subject: "Bimbingan dan Konseling", sks: "2", room: "RMICE", lecturer: "Lilla Maturizka, M.Pd" },
+  { id: 12, semester: 2, day: "Rabu", time: "10.00-11.40", class_name: "D", subject: "Ilmu Organisasi", sks: "2", room: "R311", lecturer: "Dr. Jumiyanto Widodo / Dr. Patni Ninghardjanti" },
+  { id: 13, semester: 2, day: "Rabu", time: "12.40-15.10", class_name: "A", subject: "Korespondensi B. Inggris", sks: "3", room: "RMICE", lecturer: "Dr. Susantiningrum" },
+  { id: 35, semester: 2, day: "Rabu", time: "12.40-14.20", class_name: "C", subject: "Strategi Pembelajaran", sks: "2", room: "R203", lecturer: "Dr. Tri Murwaningsih" },
+  { id: 15, semester: 2, day: "Rabu", time: "12.40-14.20", class_name: "D", subject: "Pendidikan Pancasila", sks: "2", room: "R311", lecturer: "Prof. Dr. Hery Sawiji" },
+  { id: 16, semester: 2, day: "Rabu", time: "15.10-17.40", class_name: "B", subject: "Korespondensi B. Inggris", sks: "3", room: "RMICE", lecturer: "Dr. Susantiningrum" },
+  { id: 17, semester: 2, day: "Rabu", time: "15.10-16.50", class_name: "C", subject: "Pendidikan Pancasila", sks: "2", room: "R311", lecturer: "Prof. Dr. Hery Sawiji" },
+  { id: 36, semester: 2, day: "Rabu", time: "15.10-16.50", class_name: "D", subject: "Strategi Pembelajaran", sks: "2", room: "R203", lecturer: "Dr. Tri Murwaningsih" },
+
+  { id: 19, semester: 2, day: "Kamis", time: "07.30-09.10", class_name: "A", subject: "Pendidikan Inklusi", sks: "2", room: "R203", lecturer: "Prof. Dr. Hery Sawiji" },
+  { id: 20, semester: 2, day: "Kamis", time: "07.30-09.10", class_name: "B", subject: "Ilmu Organisasi", sks: "2", room: "R311", lecturer: "Dr. Jumiyanto Widodo / Dr. Patni Ninghardjanti" },
+  { id: 21, semester: 2, day: "Kamis", time: "07.30-10.00", class_name: "C", subject: "Korespondensi B. Inggris", sks: "3", room: "RMICE", lecturer: "Dr. Susantiningrum" },
+  { id: 22, semester: 2, day: "Kamis", time: "09.10-10.50", class_name: "A", subject: "Ilmu Organisasi", sks: "2", room: "R311", lecturer: "Dr. Jumiyanto Widodo / Dr. Patni Ninghardjanti" },
+  { id: 23, semester: 2, day: "Kamis", time: "09.10-10.50", class_name: "B", subject: "Pendidikan Inklusi", sks: "2", room: "R203", lecturer: "Prof. Dr. Hery Sawiji" },
+  { id: 24, semester: 2, day: "Kamis", time: "10.00-11.40", class_name: "C", subject: "Teknologi Pembelajaran", sks: "2", room: "R202", lecturer: "Dr. Patni Ninghardjanti / Dr. Mc Umam" },
+  { id: 25, semester: 2, day: "Kamis", time: "12.40-14.20", class_name: "A", subject: "Bimbingan dan Konseling", sks: "2", room: "R311", lecturer: "Lilla Maturizka, M.Pd" },
+  { id: 26, semester: 2, day: "Kamis", time: "12.40-14.20", class_name: "C", subject: "Pendidikan Inklusi", sks: "2", room: "R203", lecturer: "Prof. Dr. Hery Sawiji" },
+  { id: 27, semester: 2, day: "Kamis", time: "12.40-15.10", class_name: "D", subject: "Korespondensi B. Inggris", sks: "3", room: "RMICE", lecturer: "Dr. Susantiningrum" },
+  { id: 28, semester: 2, day: "Kamis", time: "15.10-16.50", class_name: "A", subject: "Teknologi Pembelajaran", sks: "2", room: "R311", lecturer: "Dr. Patni Ninghardjanti / Dr. Mc Umam" },
+  { id: 29, semester: 2, day: "Kamis", time: "15.10-16.50", class_name: "B", subject: "Bimbingan dan Konseling", sks: "2", room: "R203", lecturer: "Lilla Maturizka, M.Pd" },
+  { id: 30, semester: 2, day: "Kamis", time: "15.10-16.50", class_name: "D", subject: "Pendidikan Inklusi", sks: "2", room: "R202", lecturer: "Prof. Dr. Hery Sawiji" },
+
+  { id: 2, semester: 2, day: "Jumat", time: "07.30-09.10", class_name: "A", subject: "Sistem Informasi Manajemen", sks: "2", room: "R311", lecturer: "Anton Subarno, Ph.D" },
+  { id: 32, semester: 2, day: "Jumat", time: "07.30-09.10", class_name: "B", subject: "Teknologi Pembelajaran", sks: "2", room: "R202", lecturer: "Dr. Patni Ninghardjanti / Dr. Mc Umam" },
+  { id: 10, semester: 2, day: "Jumat", time: "09.10-10.50", class_name: "B", subject: "Sistem Informasi Manajemen", sks: "2", room: "R311", lecturer: "Anton Subarno, Ph.D" },
+  { id: 34, semester: 2, day: "Jumat", time: "09.10-10.50", class_name: "D", subject: "Teknologi Pembelajaran", sks: "2", room: "R202", lecturer: "Dr. Patni Ninghardjanti / Dr. Mc Umam" },
+  { id: 14, semester: 2, day: "Jumat", time: "12.40-14.20", class_name: "C", subject: "Sistem Informasi Manajemen", sks: "2", room: "R202", lecturer: "Anton Subarno, Ph.D" },
+  { id: 18, semester: 2, day: "Jumat", time: "15.10-16.50", class_name: "D", subject: "Sistem Informasi Manajemen", sks: "2", room: "R202", lecturer: "Anton Subarno, Ph.D" },
+
+  // --- SELASA S/D JUMAT: SEMESTER 4 (REGULER) ---
+  { id: 37, semester: 4, day: "Selasa", time: "07.30-10.00", class_name: "A", subject: "Komputer Grafis", sks: "3", room: "LAB", lecturer: "Dr. Mc Umam / Arif Ranu Wicaksono" },
+  { id: 38, semester: 4, day: "Selasa", time: "07.30-10.00", class_name: "B", subject: "Manajemen Kearsipan", sks: "3", room: "RMICE", lecturer: "Prof. Dr. C Dyah Sulistyaningrum" },
+  { id: 39, semester: 4, day: "Selasa", time: "07.30-10.00", class_name: "C", subject: "Kesekretariatan", sks: "3", room: "R202", lecturer: "Prof. Dr. C Dyah Sulistyaningrum / Novedi Risanti, M.Pd" },
+  { id: 40, semester: 4, day: "Selasa", time: "07.30-10.00", class_name: "D", subject: "Administrasi Keuangan", sks: "3", room: "R311", lecturer: "Novedi Risanti, M.Pd" },
+  { id: 41, semester: 4, day: "Selasa", time: "10.00-11.40", class_name: "A", subject: "Pemrograman Web", sks: "2", room: "LAB", lecturer: "Anton Subarno, Ph.D / Dr. Mc Umam" },
+  { id: 42, semester: 4, day: "Selasa", time: "12.40-15.10", class_name: "A", subject: "Manajemen Kearsipan", sks: "3", room: "RMICE", lecturer: "Prof. Dr. C Dyah Sulistyaningrum" },
+  { id: 43, semester: 4, day: "Selasa", time: "12.40-15.10", class_name: "B", subject: "Komputer Grafis", sks: "3", room: "LAB", lecturer: "Dr. Mc Umam / Arif Ranu Wicaksono" },
+  { id: 44, semester: 4, day: "Selasa", time: "12.40-15.10", class_name: "C", subject: "Administrasi Keuangan", sks: "3", room: "R311", lecturer: "Novedi Risanti, M.Pd" },
+  { id: 45, semester: 4, day: "Selasa", time: "12.40-15.10", class_name: "D", subject: "Kesekretariatan", sks: "3", room: "R202", lecturer: "Prof. Dr. C Dyah Sulistyaningrum / Novedi Risanti, M.Pd" },
+  { id: 46, semester: 4, day: "Selasa", time: "15.10-17.40", class_name: "A", subject: "Kesekretariatan", sks: "3", room: "R202", lecturer: "Prof. Dr. C Dyah Sulistyaningrum / Novedi Risanti, M.Pd" },
+  { id: 47, semester: 4, day: "Selasa", time: "15.10-17.40", class_name: "B", subject: "Administrasi Keuangan", sks: "3", room: "R311", lecturer: "Novedi Risanti, M.Pd" },
+  { id: 48, semester: 4, day: "Selasa", time: "15.10-17.40", class_name: "C", subject: "Komputer Grafis", sks: "3", room: "LAB", lecturer: "Dr. Mc Umam / Arif Ranu Wicaksono" },
+  { id: 49, semester: 4, day: "Selasa", time: "15.10-17.40", class_name: "D", subject: "Manajemen Kearsipan", sks: "3", room: "RMICE", lecturer: "Prof. Dr. C Dyah Sulistyaningrum" },
+  { id: 50, semester: 4, day: "Rabu", time: "07.30-10.00", class_name: "A", subject: "Administrasi Keuangan", sks: "3", room: "R311", lecturer: "Novedi Risanti, M.Pd" },
+  { id: 51, semester: 4, day: "Rabu", time: "07.30-10.00", class_name: "B", subject: "Kesekretariatan", sks: "3", room: "R202", lecturer: "Prof. Dr. C Dyah Sulistyaningrum / Novedi Risanti, M.Pd" },
+  { id: 52, semester: 4, day: "Rabu", time: "07.30-10.00", class_name: "C", subject: "Manajemen Kearsipan", sks: "3", room: "RMICE", lecturer: "Prof. Dr. C Dyah Sulistyaningrum" },
+  { id: 53, semester: 4, day: "Rabu", time: "07.30-10.00", class_name: "D", subject: "Komputer Grafis", sks: "3", room: "LAB", lecturer: "Dr. Mc Umam / Arif Ranu Wicaksono" },
+  { id: 54, semester: 4, day: "Rabu", time: "10.00-11.40", class_name: "B", subject: "Pemrograman Web", sks: "2", room: "LAB", lecturer: "Anton Subarno, Ph.D / Dr. Mc Umam" },
+  { id: 55, semester: 4, day: "Rabu", time: "12.40-15.10", class_name: "A", subject: "Metodologi Penelitian", sks: "3", room: "R202", lecturer: "Subroto Rapih, Ph.D / Dr. Tutik Susilowati" },
+  { id: 56, semester: 4, day: "Rabu", time: "12.40-14.20", class_name: "C", subject: "Pemrograman Web", sks: "2", room: "LAB", lecturer: "Anton Subarno, Ph.D / Dr. Mc Umam" },
+  { id: 57, semester: 4, day: "Rabu", time: "15.10-17.40", class_name: "B", subject: "Metodologi Penelitian", sks: "3", room: "R202", lecturer: "Subroto Rapih, Ph.D / Dr. Tutik Susilowati" },
+  { id: 58, semester: 4, day: "Rabu", time: "15.10-16.50", class_name: "D", subject: "Pemrograman Web", sks: "2", room: "LAB", lecturer: "Anton Subarno, Ph.D / Dr. Mc Umam" },
+  { id: 59, semester: 4, day: "Kamis", time: "07.30-10.00", class_name: "C", subject: "Metodologi Penelitian", sks: "3", room: "R202", lecturer: "Subroto Rapih, Ph.D / Dr. Tutik Susilowati" },
+  { id: 60, semester: 4, day: "Kamis", time: "10.00-11.40", class_name: "A", subject: "Statistika Inferensial", sks: "2", room: "RMICE", lecturer: "Subroto Rapih, Ph.D" },
+  { id: 61, semester: 4, day: "Kamis", time: "12.40-15.10", class_name: "D", subject: "Metodologi Penelitian", sks: "3", room: "R202", lecturer: "Subroto Rapih, Ph.D / Dr. Tutik Susilowati" },
+  { id: 62, semester: 4, day: "Kamis", time: "15.10-16.50", class_name: "B", subject: "Statistika Inferensial", sks: "2", room: "RMICE", lecturer: "Subroto Rapih, Ph.D" },
+  { id: 63, semester: 4, day: "Jumat", time: "07.30-09.10", class_name: "C", subject: "Statistika Inferensial", sks: "2", room: "R203", lecturer: "Subroto Rapih, Ph.D" },
+  { id: 64, semester: 4, day: "Jumat", time: "09.10-10.50", class_name: "D", subject: "Statistika Inferensial", sks: "2", room: "R203", lecturer: "Subroto Rapih, Ph.D" },
+];
+
+const DAYS = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
+
+// ==================== UTILITY FUNCTIONS ====================
+const timeToMinutes = (timeStr) => {
+  const [hours, minutes] = timeStr.split('.').map(Number);
+  return hours * 60 + minutes;
+};
+
+const hasTimeConflict = (time1, time2) => {
+  const [start1, end1] = time1.split('-').map(timeToMinutes);
+  const [start2, end2] = time2.split('-').map(timeToMinutes);
+  return (start1 < end2 && end1 > start2);
+};
+
+const detectConflicts = (scheduleData) => {
+  const conflicts = [];
+  for (let i = 0; i < scheduleData.length; i++) {
+    for (let j = i + 1; j < scheduleData.length; j++) {
+      const item1 = scheduleData[i];
+      const item2 = scheduleData[j];
+
+      // Check room conflict (same day, same room, overlapping time)
+      if (item1.day === item2.day && item1.room === item2.room && hasTimeConflict(item1.time, item2.time)) {
+        conflicts.push({
+          type: 'room',
+          items: [item1.id, item2.id],
+          message: `Konflik Ruang ${item1.room} pada ${item1.day} (${item1.time})`
+        });
+      }
+
+      // Check lecturer conflict (same lecturer, same day, overlapping time)
+      const lecturers1 = item1.lecturer.split('/').map(l => l.trim());
+      const lecturers2 = item2.lecturer.split('/').map(l => l.trim());
+      const commonLecturers = lecturers1.filter(l => lecturers2.includes(l));
+
+      if (commonLecturers.length > 0 && item1.day === item2.day && hasTimeConflict(item1.time, item2.time)) {
+        conflicts.push({
+          type: 'lecturer',
+          items: [item1.id, item2.id],
+          message: `Konflik Dosen ${commonLecturers[0]} pada ${item1.day} (${item1.time})`
+        });
+      }
+    }
+  }
+  return conflicts;
+};
+
+// --- STYLES (MODERN LIGHT & COLORFUL - INSPIRED BY SIJADISTRA UNS) ---
+const styles = {
+  card: "bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.08)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.12)] transition-all duration-300",
+  inset: "bg-gray-50 border border-gray-200 rounded-xl shadow-inner focus-within:border-sky-400 focus-within:ring-2 focus-within:ring-sky-100 transition-all",
+  btnPrimary: "bg-gradient-to-r from-sky-400 to-sky-500 text-white font-semibold py-3 px-6 rounded-xl shadow-[0_2px_8px_rgba(56,189,248,0.3)] hover:shadow-[0_4px_12px_rgba(56,189,248,0.4)] hover:from-sky-500 hover:to-sky-600 active:scale-95 transition-all duration-200",
+  btnSecondary: "bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 font-semibold py-3 px-6 rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.08)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.12)] hover:from-gray-200 hover:to-gray-300 active:scale-95 transition-all duration-200",
+  btnDanger: "bg-gradient-to-r from-red-400 to-red-500 text-white font-semibold py-3 px-6 rounded-xl shadow-[0_2px_8px_rgba(248,113,113,0.3)] hover:shadow-[0_4px_12px_rgba(248,113,113,0.4)] hover:from-red-500 hover:to-red-600 active:scale-95 transition-all duration-200",
+  btnSuccess: "bg-gradient-to-r from-emerald-400 to-emerald-500 text-white font-semibold py-3 px-6 rounded-xl shadow-[0_2px_8px_rgba(52,211,153,0.3)] hover:shadow-[0_4px_12px_rgba(52,211,153,0.4)] hover:from-emerald-500 hover:to-emerald-600 active:scale-95 transition-all duration-200",
+  btnWarning: "bg-gradient-to-r from-orange-400 to-orange-500 text-white font-semibold py-3 px-6 rounded-xl shadow-[0_2px_8px_rgba(251,146,60,0.3)] hover:shadow-[0_4px_12px_rgba(251,146,60,0.4)] hover:from-orange-500 hover:to-orange-600 active:scale-95 transition-all duration-200",
+  slotCard: "bg-gradient-to-br from-white to-gray-50 border border-gray-200 rounded-xl p-3 shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_16px_rgba(56,189,248,0.2)] hover:border-sky-300 relative hover:-translate-y-1 transition-all duration-200 cursor-pointer",
+  slotCardDragging: "opacity-50 border-dashed border-2 border-sky-400 bg-sky-50 shadow-inner",
+};
+
+function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [password, setPassword] = useState("");
+  const [activeTab, setActiveTab] = useState("schedule");
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+  // Initialize from localStorage or use default data
+  const [scheduleData, setScheduleData] = useState(() => {
+    const saved = localStorage.getItem('jadwal_kuliah_data');
+    return saved ? JSON.parse(saved) : INITIAL_SCHEDULE_DATA;
+  });
+
+  // Save to localStorage whenever scheduleData changes
+  useEffect(() => {
+    localStorage.setItem('jadwal_kuliah_data', JSON.stringify(scheduleData));
+  }, [scheduleData]);
+
+  const handleLogin = (e) => {
+    e.preventDefault();
+    if (password === "papberproses") setIsAuthenticated(true);
+    else alert("Password Salah!");
+  };
+
+  const updateSchedule = (newItem) => {
+    if (!newItem.id) {
+       const newId = Math.max(...scheduleData.map(d => d.id), 0) + 1;
+       setScheduleData(prev => [...prev, { ...newItem, id: newId }]);
+    } else {
+       setScheduleData(prev => prev.map(item => item.id === newItem.id ? newItem : item));
+    }
+  };
+
+  const deleteSchedule = (id) => {
+    if (window.confirm('Apakah Anda yakin ingin menghapus jadwal ini?')) {
+      setScheduleData(prev => prev.filter(item => item.id !== id));
+    }
+  };
+
+  const swapItems = (id1, id2) => {
+    setScheduleData(prev => {
+      const items = [...prev];
+      const idx1 = items.findIndex(i => i.id === id1);
+      const idx2 = items.findIndex(i => i.id === id2);
+      if (idx1 === -1 || idx2 === -1) return prev;
+
+      const item1 = { ...items[idx1] };
+      const item2 = { ...items[idx2] };
+
+      const temp = { day: item1.day, time: item1.time, room: item1.room };
+      item1.day = item2.day;
+      item1.time = item2.time;
+      item1.room = item2.room;
+      item2.day = temp.day;
+      item2.time = temp.time;
+      item2.room = temp.room;
+
+      items[idx1] = item1;
+      items[idx2] = item2;
+      return items;
+    });
+  };
+
+  const exportData = () => {
+    const dataStr = JSON.stringify(scheduleData, null, 2);
+    const blob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `jadwal-kuliah-${new Date().toISOString().split('T')[0]}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const importData = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const imported = JSON.parse(event.target.result);
+        if (window.confirm('Import data ini? Data saat ini akan ditimpa.')) {
+          setScheduleData(imported);
+        }
+      } catch (error) {
+        alert('File tidak valid!');
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const resetData = () => {
+    if (window.confirm('Reset ke data awal? Semua perubahan akan hilang!')) {
+      setScheduleData(INITIAL_SCHEDULE_DATA);
+      localStorage.removeItem('jadwal_kuliah_data');
+    }
+  };
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-sky-400 via-sky-500 to-blue-500 flex items-center justify-center p-4 relative overflow-hidden">
+        {/* Animated background effects */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute w-96 h-96 bg-white/10 rounded-full blur-3xl -top-20 -left-20 animate-pulse"></div>
+          <div className="absolute w-96 h-96 bg-white/10 rounded-full blur-3xl -bottom-20 -right-20 animate-pulse" style={{animationDelay: '1s'}}></div>
+          <div className="absolute w-64 h-64 bg-white/5 rounded-full blur-2xl top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse" style={{animationDelay: '2s'}}></div>
+        </div>
+        <form onSubmit={handleLogin} className={`${styles.card} p-10 w-full max-w-lg text-center relative overflow-hidden z-10`}>
+          {/* Top accent bar */}
+          <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-sky-400 via-blue-500 to-sky-400"></div>
+
+          <div className="w-24 h-24 bg-gradient-to-br from-sky-400 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-[0_4px_16px_rgba(56,189,248,0.4)]">
+            <Calendar className="w-12 h-12 text-white" />
+          </div>
+
+          <div className="mb-3">
+            <h1 className="text-3xl font-bold text-gray-800">SIJADISTRA FKIP UNS</h1>
+            <div className="h-1 w-32 bg-gradient-to-r from-sky-400 to-blue-500 mx-auto my-3 rounded-full"></div>
+          </div>
+          <p className="text-gray-700 font-semibold mb-2 text-lg">Sistem Informasi Akademik</p>
+          <p className="text-gray-600 text-sm mb-8">Prodi Pendidikan Administrasi Perkantoran</p>
+
+          <div className={`${styles.inset} mb-6`}>
+            <input
+              type="password"
+              className="w-full bg-transparent p-4 outline-none text-gray-800 text-center font-semibold placeholder-gray-400 text-lg"
+              placeholder="Masukkan Password"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+            />
+          </div>
+          <button className={`${styles.btnPrimary} w-full text-lg`}>🔐 MASUK SISTEM</button>
+        </form>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-50 flex">
+      <style>{`
+        @media print {
+          @page {
+            size: landscape;
+            margin: 8mm 5mm;
+          }
+          body {
+            background-color: white !important;
+            overflow: visible !important;
+          }
+          .no-print, .print\\:hidden { display: none !important; }
+          .print-only {
+            display: block !important;
+            overflow: visible !important;
+          }
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+
+          /* Prevent text overflow */
+          table, td, th {
+            word-wrap: break-word !important;
+            word-break: break-word !important;
+            overflow-wrap: break-word !important;
+          }
+
+          /* Smaller font for print */
+          .print-only {
+            font-size: 7px !important;
+            line-height: 1.2 !important;
+          }
+
+          /* Ensure proper page breaks */
+          .print-only > div {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+          }
+        }
+        @media screen {
+          .print-only { display: none !important; }
+        }
+      `}</style>
+
+      {/* Sidebar */}
+      <aside className={`${isSidebarOpen ? 'w-80' : 'w-20'} bg-gradient-to-b from-gray-50 to-white text-gray-700 flex-shrink-0 flex flex-col shadow-[4px_0_12px_rgba(0,0,0,0.08)] print:hidden border-r border-gray-200 transition-all duration-300 ease-in-out`}>
+        {/* Top accent strip */}
+        <div className="h-2 bg-gradient-to-r from-sky-400 via-blue-500 to-sky-400"></div>
+
+        {/* Toggle Button */}
+        <div className="p-3 flex justify-end border-b border-gray-200">
+          <button
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            className="p-2 rounded-lg bg-white hover:bg-gray-50 border border-gray-200 shadow-[0_2px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_2px_8px_rgba(56,189,248,0.2)] transition-all"
+            title={isSidebarOpen ? "Tutup Sidebar" : "Buka Sidebar"}
+          >
+            {isSidebarOpen ? <ChevronLeft className="w-5 h-5 text-gray-600" /> : <ChevronRight className="w-5 h-5 text-gray-600" />}
+          </button>
+        </div>
+
+        <div className={`p-4 border-b border-gray-200 bg-gradient-to-br from-white to-gray-50 ${isSidebarOpen ? '' : 'flex justify-center'}`}>
+          <div className={`flex items-center ${isSidebarOpen ? 'gap-3' : 'flex-col gap-2'}`}>
+            <div className={`${isSidebarOpen ? 'w-14 h-14' : 'w-10 h-10'} rounded-2xl bg-gradient-to-br from-sky-400 to-blue-500 shadow-[0_4px_12px_rgba(56,189,248,0.3)] flex items-center justify-center transition-all`}>
+              <BookOpen className={`${isSidebarOpen ? 'w-8 h-8' : 'w-6 h-6'} text-white`} />
+            </div>
+            {isSidebarOpen && (
+              <div>
+                <h2 className="text-xl font-bold text-gray-800">SIJADISTRA</h2>
+                <p className="text-xs text-gray-600 font-semibold">FKIP UNS</p>
+              </div>
+            )}
+          </div>
+          {isSidebarOpen && (
+            <div className="bg-gray-100 px-3 py-2 rounded-lg border border-gray-200 mt-3">
+              <p className="text-[10px] text-gray-700 font-semibold">Prodi Pendidikan Adm. Perkantoran</p>
+            </div>
+          )}
+        </div>
+
+        <nav className={`p-3 space-y-2 flex-1 ${isSidebarOpen ? '' : 'flex flex-col items-center'}`}>
+          <button
+            onClick={() => setActiveTab("schedule")}
+            className={`w-full flex items-center ${isSidebarOpen ? 'gap-3 px-5 py-4' : 'justify-center px-3 py-4'} rounded-xl font-semibold transition-all duration-200 ${
+              activeTab === 'schedule'
+                ? 'bg-gradient-to-r from-sky-400 to-sky-500 text-white shadow-[0_2px_8px_rgba(56,189,248,0.3)]'
+                : 'bg-white text-gray-700 hover:text-sky-500 hover:bg-gray-50 shadow-[0_2px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_2px_8px_rgba(56,189,248,0.15)]'
+            }`}
+            title={isSidebarOpen ? "" : "Jadwal Kuliah"}
+          >
+            <Clock className="w-5 h-5" />
+            {isSidebarOpen && <span>Jadwal Kuliah</span>}
+          </button>
+          <button
+            onClick={() => setActiveTab("teachers")}
+            className={`w-full flex items-center ${isSidebarOpen ? 'gap-3 px-5 py-4' : 'justify-center px-3 py-4'} rounded-xl font-semibold transition-all duration-200 ${
+              activeTab === 'teachers'
+                ? 'bg-gradient-to-r from-sky-400 to-sky-500 text-white shadow-[0_2px_8px_rgba(56,189,248,0.3)]'
+                : 'bg-white text-gray-700 hover:text-sky-500 hover:bg-gray-50 shadow-[0_2px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_2px_8px_rgba(56,189,248,0.15)]'
+            }`}
+            title={isSidebarOpen ? "" : "Data Dosen"}
+          >
+            <Users className="w-5 h-5" />
+            {isSidebarOpen && <span>Data Dosen</span>}
+          </button>
+        </nav>
+
+        <div className={`p-3 space-y-2 border-t border-gray-200 bg-gradient-to-b from-white to-gray-50 ${isSidebarOpen ? '' : 'flex flex-col items-center'}`}>
+          <button
+            onClick={exportData}
+            className={`${styles.btnSuccess} w-full flex items-center justify-center gap-2 text-sm ${isSidebarOpen ? 'px-4 py-3' : 'px-3 py-3'}`}
+            title={isSidebarOpen ? "" : "Export Data"}
+          >
+            <Download className="w-4 h-4" />
+            {isSidebarOpen && <span>Export Data</span>}
+          </button>
+          <label
+            className={`${styles.btnWarning} w-full flex items-center justify-center gap-2 cursor-pointer text-sm ${isSidebarOpen ? 'px-4 py-3' : 'px-3 py-3'}`}
+            title={isSidebarOpen ? "" : "Import Data"}
+          >
+            <Upload className="w-4 h-4" />
+            {isSidebarOpen && <span>Import Data</span>}
+            <input type="file" accept=".json" onChange={importData} className="hidden" />
+          </label>
+          <button
+            onClick={resetData}
+            className={`${styles.btnWarning} w-full flex items-center justify-center gap-2 text-sm ${isSidebarOpen ? 'px-4 py-3' : 'px-3 py-3'}`}
+            title={isSidebarOpen ? "" : "Reset Data"}
+          >
+            <AlertTriangle className="w-4 h-4" />
+            {isSidebarOpen && <span>Reset Data</span>}
+          </button>
+          <button
+            onClick={() => setIsAuthenticated(false)}
+            className={`${styles.btnDanger} w-full flex justify-center items-center gap-2 text-sm ${isSidebarOpen ? 'px-4 py-3' : 'px-3 py-3'}`}
+            title={isSidebarOpen ? "" : "Keluar"}
+          >
+            <LogOut className="w-4 h-4" />
+            {isSidebarOpen && <span>Keluar</span>}
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <main className="flex-1 overflow-y-auto bg-gradient-to-br from-gray-50 to-gray-100 print:p-0 print:overflow-visible print:bg-white flex flex-col">
+        {/* Top Header Bar */}
+        <div className="bg-gradient-to-r from-sky-400 to-sky-500 px-6 py-4 shadow-md print:hidden flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-xl bg-white shadow-[0_2px_8px_rgba(0,0,0,0.2)] flex items-center justify-center">
+              <BookOpen className="w-7 h-7 text-sky-500" />
+            </div>
+            <h1 className="text-2xl font-bold text-white">SIJADISTRA UNS</h1>
+          </div>
+          <div className="flex items-center gap-3 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-xl">
+            <User className="w-5 h-5 text-white" />
+            <span className="text-white font-semibold">Administrator</span>
+          </div>
+        </div>
+
+        <div className="p-8 print:p-0 flex-1">
+          {activeTab === "schedule"
+            ? <ScheduleManager
+                scheduleData={scheduleData}
+                onUpdate={updateSchedule}
+                onSwap={swapItems}
+                onDelete={deleteSchedule}
+              />
+            : <TeacherDatabase scheduleData={scheduleData} />
+          }
+        </div>
+      </main>
+    </div>
+  );
+}
+
+// --- SCHEDULE MANAGER COMPONENT ---
+
+function ScheduleManager({ scheduleData, onUpdate, onSwap, onDelete }) {
+  const [viewMode, setViewMode] = useState("master");
+  const [selectedSemester, setSelectedSemester] = useState("MC");
+  const [selectedClass, setSelectedClass] = useState("A");
+  const [masterDay, setMasterDay] = useState("Senin");
+
+  const [editMode, setEditMode] = useState(false);
+  const [draggedItem, setDraggedItem] = useState(null);
+  const [editingItem, setEditingItem] = useState(null);
+  const [showConflicts, setShowConflicts] = useState(false);
+
+  // Detect conflicts
+  const conflicts = useMemo(() => detectConflicts(scheduleData), [scheduleData]); 
+
+  // --- DRAG AND DROP HANDLERS (UPDATED for Cross-Day) ---
+  const handleDragStart = (e, item) => {
+    if (!editMode) return;
+    setDraggedItem(item);
+    e.dataTransfer.setData("text/plain", JSON.stringify(item));
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDragOver = (e) => {
+    if (!editMode) return;
+    e.preventDefault(); 
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  const handleDrop = (e, targetItem) => {
+    if (!editMode) return;
+    e.preventDefault();
+    if (draggedItem && draggedItem.id !== targetItem.id) {
+       // Logic untuk swap, sekarang support lintas hari karena swapItems handle itu
+       onSwap(draggedItem.id, targetItem.id);
+    }
+    setDraggedItem(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedItem(null);
+  };
+
+  // --- DATA PROCESSING ---
+  const classViewData = useMemo(() => {
+    return scheduleData.filter(item => {
+      if (selectedSemester === "MC") {
+         return item.semester === "MC" && item.class_name === selectedClass;
+      }
+      return item.semester === parseInt(selectedSemester) && item.class_name === selectedClass;
+    });
+  }, [scheduleData, selectedSemester, selectedClass]);
+
+  const classScheduleByDay = useMemo(() => {
+    const grouped = { Senin: [], Selasa: [], Rabu: [], Kamis: [], Jumat: [] };
+    classViewData.forEach(item => {
+      if (grouped[item.day]) grouped[item.day].push(item);
+    });
+    Object.keys(grouped).forEach(day => grouped[day].sort((a, b) => a.time.localeCompare(b.time)));
+    return grouped;
+  }, [classViewData]);
+
+  // MASTER VIEW LOGIC (masterDay already declared above)
+  
+  const masterViewData = useMemo(() => {
+    return scheduleData.filter(item => item.day === masterDay);
+  }, [scheduleData, masterDay]);
+
+  const masterGrouped = useMemo(() => {
+    // DYNAMIC COLUMN GENERATION
+    let cols = {};
+    
+    if (masterDay === 'Senin') {
+        ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'].forEach(c => {
+            cols[`MC-${c}`] = [];
+        });
+        cols["PPG"] = []; // Ensure PPG column exists on Monday
+    } else {
+        ['2-A', '2-B', '2-C', '2-D', '4-A', '4-B', '4-C', '4-D'].forEach(c => {
+            cols[c] = [];
+        });
+        cols["PPG"] = [];
+    }
+
+    masterViewData.forEach(item => {
+      let key;
+      if (item.semester === "MC") {
+          key = `MC-${item.class_name}`;
+      } else if (item.semester === "PPG") {
+          key = "PPG";
+      } else {
+          key = `${item.semester}-${item.class_name}`;
+      }
+      
+      if (cols[key]) cols[key].push(item);
+    });
+    
+    Object.keys(cols).forEach(k => cols[k].sort((a, b) => a.time.localeCompare(b.time)));
+    return cols;
+  }, [masterViewData, masterDay]);
+
+  // --- PRINT PREPARATION (ALL DATA FLAT) ---
+  const printMasterData = useMemo(() => {
+     const allData = { 
+        Senin: {}, Selasa: {}, Rabu: {}, Kamis: {}, Jumat: {} 
+     };
+     
+     const mcKeys = {};
+     ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'].forEach(c => {
+         mcKeys[`MC-${c}`] = [];
+     });
+
+     // Init cols
+     DAYS.forEach(d => {
+        if(d === 'Senin'){
+            allData[d] = { ...mcKeys, "PPG": [] };
+        } else {
+            allData[d] = {
+                "2-A": [], "2-B": [], "2-C": [], "2-D": [],
+                "4-A": [], "4-B": [], "4-C": [], "4-D": [],
+                "PPG": []
+            };
+        }
+     });
+     
+     scheduleData.forEach(item => {
+         let key;
+         if(item.semester === "MC") {
+             key = `MC-${item.class_name}`;
+         } else if (item.semester === "PPG") {
+             key = "PPG";
+         } else {
+             key = `${item.semester}-${item.class_name}`;
+         }
+         
+         // Only push if key exists in predefined structure for that day (avoids errors if data is on wrong day for column structure)
+         if(allData[item.day] && allData[item.day][key]) {
+             allData[item.day][key].push(item);
+         }
+     });
+
+     // Sort times
+     DAYS.forEach(d => {
+        Object.keys(allData[d]).forEach(k => {
+            allData[d][k].sort((a, b) => a.time.localeCompare(b.time));
+        });
+     });
+
+     return allData;
+  }, [scheduleData]);
+
+
+  const handleEditClick = (e, item) => {
+    e.stopPropagation();
+    setEditingItem({ ...item });
+  };
+
+  const handleAddClick = (colKey) => {
+      // Parse colKey to get default semester and class
+      let defaultSem = 2;
+      let defaultClass = "A";
+      
+      if(colKey === 'PPG') {
+          defaultSem = "PPG";
+      } else if (colKey.startsWith('MC-')) {
+          defaultSem = "MC";
+          defaultClass = colKey.split('-')[1];
+      } else if (colKey.startsWith('2-')) {
+          defaultSem = 2;
+          defaultClass = colKey.split('-')[1];
+      } else if (colKey.startsWith('4-')) {
+          defaultSem = 4;
+          defaultClass = colKey.split('-')[1];
+      }
+
+      setEditingItem({
+          id: 0, // 0 indicates new item
+          semester: defaultSem,
+          class_name: defaultClass,
+          day: masterDay,
+          time: "",
+          subject: "",
+          lecturer: "",
+          room: "",
+          sks: ""
+      });
+  };
+
+  const saveEdit = () => {
+    onUpdate(editingItem);
+    setEditingItem(null);
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const handleDelete = (e, item) => {
+    e.stopPropagation();
+    onDelete(item.id);
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header Controls */}
+      <div className={`${styles.card} p-6 print:hidden relative overflow-hidden`}>
+        {/* Gold accent corner */}
+        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-amber-400/20 to-yellow-500/10 rounded-bl-full"></div>
+
+        <div className="flex flex-wrap gap-4 justify-between items-center relative z-10">
+          <div>
+            <h2 className="text-3xl font-bold text-gray-800 mb-1 drop-shadow-[0_2px_8px_rgba(14,165,233,0.5)]">
+              {viewMode === 'master' ? '📅 Jadwal Gabungan' : '📚 Jadwal Per Kelas'}
+            </h2>
+            <p className="text-gray-600 font-semibold">
+              {viewMode === 'master'
+                ? (masterDay === 'Senin' ? 'Senin: MC (A-J) + PPG' : 'Selasa-Jumat: Sem 2 & 4 + PPG')
+                : (selectedSemester === "MC" ? `Kelas MC-${selectedClass}` : `Semester ${selectedSemester} - Kelas ${selectedClass}`)
+              }
+            </p>
+          </div>
+
+          <div className="flex gap-3 items-center flex-wrap">
+            {/* View Toggle */}
+            <div className="bg-gradient-to-b from-slate-800 to-slate-900 p-2 rounded-lg flex shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)] border border-gray-200">
+                <button
+                    onClick={() => setViewMode('class')}
+                    className={`px-5 py-2.5 rounded-md text-sm font-bold transition-all border ${
+                      viewMode === 'class'
+                        ? 'bg-gradient-to-b from-sky-500 to-sky-700 text-white shadow-[0_4px_0_rgba(3,105,161,1),0_4px_12px_rgba(14,165,233,0.4)] border-sky-600'
+                        : 'bg-gradient-to-b from-slate-700 to-slate-800 text-gray-600 hover:from-slate-600 hover:to-slate-700 hover:text-white shadow-sm border-gray-300'
+                    }`}
+                >
+                    Per Kelas
+                </button>
+                <button
+                    onClick={() => setViewMode('master')}
+                    className={`px-5 py-2.5 rounded-md text-sm font-bold transition-all border ${
+                      viewMode === 'master'
+                        ? 'bg-gradient-to-b from-sky-500 to-sky-700 text-white shadow-[0_4px_0_rgba(3,105,161,1),0_4px_12px_rgba(14,165,233,0.4)] border-sky-600'
+                        : 'bg-gradient-to-b from-slate-700 to-slate-800 text-gray-600 hover:from-slate-600 hover:to-slate-700 hover:text-white shadow-sm border-gray-300'
+                    }`}
+                >
+                    Gabungan
+                </button>
+            </div>
+
+            {viewMode === 'class' && (
+                <>
+                  <div className={`${styles.inset} relative px-4 py-3`}>
+                    <select
+                      value={selectedSemester}
+                      onChange={e => {
+                          setSelectedSemester(e.target.value);
+                          if(e.target.value === "MC") setSelectedClass("A");
+                      }}
+                      className="appearance-none bg-transparent py-1 pl-2 pr-8 font-bold text-gray-700 outline-none cursor-pointer w-28 text-sm"
+                    >
+                      <option value="MC" className="bg-white text-gray-700">Kelas MC</option>
+                      <option value={2} className="bg-white text-gray-700">Sem 2</option>
+                      <option value={4} className="bg-white text-gray-700">Sem 4</option>
+                    </select>
+                    <ChevronDown className="absolute right-3 top-4 w-4 h-4 text-gray-500 pointer-events-none" />
+                  </div>
+
+                  <div className={`${styles.inset} relative px-4 py-3`}>
+                      <select
+                      value={selectedClass}
+                      onChange={e => setSelectedClass(e.target.value)}
+                      className="appearance-none bg-transparent py-1 pl-2 pr-8 font-bold text-gray-700 outline-none cursor-pointer w-20 text-sm"
+                      >
+                      {selectedSemester === "MC"
+                          ? ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'].map(cls => <option key={cls} value={cls} className="bg-white text-gray-700">{cls}</option>)
+                          : ['A', 'B', 'C', 'D'].map(cls => <option key={cls} value={cls} className="bg-white text-gray-700">{cls}</option>)
+                      }
+                      </select>
+                      <ChevronDown className="absolute right-3 top-4 w-4 h-4 text-gray-500 pointer-events-none" />
+                  </div>
+                </>
+            )}
+
+            <div className="h-8 w-px bg-slate-600"></div>
+
+            {/* Conflict indicator */}
+            {conflicts.length > 0 && (
+              <button
+                onClick={() => setShowConflicts(!showConflicts)}
+                className="flex items-center gap-2 px-5 py-3 bg-gradient-to-b from-sky-500 to-sky-700 text-white rounded-xl font-semibold shadow-[0_2px_8px_rgba(56,189,248,0.3)] hover:shadow-[0_4px_12px_rgba(56,189,248,0.4)] transition-all duration-200"
+              >
+                <AlertCircle className="w-4 h-4" />
+                {conflicts.length} Konflik
+              </button>
+            )}
+
+            {/* Edit Mode Toggle */}
+            <button
+              onClick={() => setEditMode(!editMode)}
+              className={`flex items-center gap-2 px-5 py-3 rounded-xl font-semibold transition-all duration-200 ${
+                editMode
+                  ? 'bg-gradient-to-b from-sky-500 to-sky-700 text-white shadow-[0_2px_8px_rgba(56,189,248,0.3)] hover:shadow-[0_4px_12px_rgba(56,189,248,0.4)]'
+                  : 'bg-gradient-to-b from-sky-500 to-sky-700 text-white shadow-[0_2px_8px_rgba(56,189,248,0.3)] hover:shadow-[0_4px_12px_rgba(56,189,248,0.4)]'
+              }`}
+            >
+              {editMode ? <Check className="w-4 h-4" /> : <Edit3 className="w-4 h-4" />}
+              {editMode ? 'Selesai' : 'Edit'}
+            </button>
+
+            {/* Print Button */}
+            <button
+              onClick={handlePrint}
+              className={`${styles.btnPrimary} flex items-center gap-2`}
+            >
+              <Printer className="w-4 h-4" /> Cetak
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Conflict Warning */}
+      {showConflicts && conflicts.length > 0 && (
+        <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4 print:hidden">
+          <div className="flex justify-between items-start mb-3">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="w-5 h-5 text-red-600" />
+              <h3 className="font-bold text-red-800">Ditemukan {conflicts.length} Konflik Jadwal</h3>
+            </div>
+            <button onClick={() => setShowConflicts(false)}>
+              <X className="w-5 h-5 text-red-600 hover:text-red-800" />
+            </button>
+          </div>
+          <div className="space-y-2">
+            {conflicts.map((conflict, idx) => (
+              <div key={idx} className="bg-white p-3 rounded-lg border border-red-200 text-sm">
+                <span className="font-semibold text-red-700">{conflict.message}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      
+      {/* Edit Mode Banner */}
+      {editMode && (
+        <div className="bg-yellow-50 border-2 border-yellow-300 text-yellow-900 p-4 rounded-xl flex items-center gap-3 print:hidden">
+          <div className="bg-yellow-400 p-2 rounded-lg">
+            <ArrowRightLeft className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <p className="font-bold">Mode Edit Aktif</p>
+            <p className="text-sm">Drag & drop untuk menukar jadwal. Klik (+) untuk tambah, klik ✏️ untuk edit, klik 🗑️ untuk hapus.</p>
+          </div>
+        </div>
+      )}
+
+      {/* --- MASTER VIEW (SCREEN) --- */}
+      {viewMode === 'master' && (
+        <div className="space-y-4 print:hidden no-print">
+             {/* Day Tabs */}
+            <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+                {DAYS.map(day => (
+                    <div 
+                        key={day}
+                        onDragOver={(e) => {
+                            if (editMode) {
+                                e.preventDefault();
+                                setMasterDay(day);
+                            }
+                        }}
+                    >
+                        <button
+                            onClick={() => setMasterDay(day)}
+                            className={`px-7 py-4 rounded-lg font-bold text-sm transition-all border-3 ${
+                              masterDay === day
+                                ? 'bg-gradient-to-b from-sky-400 to-sky-600 border-sky-700 text-white shadow-[0_6px_0_rgba(2,132,199,0.5),0_8px_16px_rgba(0,0,0,0.4)] translate-y-0'
+                                : 'bg-gradient-to-b from-slate-100 to-slate-200 border-slate-400 text-slate-700 hover:from-slate-50 hover:to-slate-100 shadow-[0_4px_8px_rgba(0,0,0,0.2)]'
+                            }`}
+                        >
+                            {day.toUpperCase()}
+                        </button>
+                    </div>
+                ))}
+            </div>
+
+            <div className="bg-gradient-to-br from-white to-slate-50 rounded-xl shadow-[0_8px_16px_rgba(0,0,0,0.15)] border-4 border-slate-300 p-6 overflow-x-auto">
+                {/* Dynamic Grid Cols */}
+                <div
+                    className="grid gap-4 min-w-max"
+                    style={{
+                        gridTemplateColumns: masterDay === 'Senin'
+                            ? 'repeat(11, minmax(200px, 1fr))'
+                            : 'repeat(9, minmax(200px, 1fr))'
+                    }}
+                >
+                    {/* Headers */}
+                    {Object.keys(masterGrouped).map(col => (
+                        <div key={col}>
+                            <div className={`text-white py-4 rounded-lg font-bold text-sm text-center shadow-[0_4px_8px_rgba(0,0,0,0.3),inset_0_2px_4px_rgba(255,255,255,0.3)] mb-4 border-3 ${
+                              col === 'PPG'
+                                ? 'bg-gradient-to-b from-purple-500 to-purple-700 border-purple-800'
+                                : (col.startsWith('MC')
+                                  ? 'bg-gradient-to-b from-emerald-500 to-emerald-700 border-emerald-800'
+                                  : 'bg-gradient-to-b from-sky-500 to-sky-700 border-sky-800')
+                            }`}>
+                                {col === 'PPG' ? 'KELAS PPG' : (col.startsWith('MC') ? col : `SEM ${col.split('-')[0]} - ${col.split('-')[1]}`)}
+                            </div>
+                            <div className="space-y-3 min-h-[300px] p-3 bg-gradient-to-br from-slate-50 to-slate-100 rounded-lg border-3 border-slate-300 shadow-inner">
+                                {masterGrouped[col].map((item) => (
+                                    <div 
+                                        key={item.id}
+                                        draggable={editMode && item.subject !== "Belum Ada Jadwal"}
+                                        onDragStart={(e) => handleDragStart(e, item)}
+                                        onDragOver={handleDragOver}
+                                        onDrop={(e) => handleDrop(e, item)}
+                                        onDragEnd={handleDragEnd}
+                                        onClick={(e) => {
+                                            if(editMode && item.subject === "Belum Ada Jadwal") {
+                                                handleEditClick(e, item);
+                                            }
+                                        }}
+                                        className={`
+                                            ${styles.slotCard}
+                                            ${draggedItem?.id === item.id ? styles.slotCardDragging : ''}
+                                            flex flex-col gap-1 text-left group relative
+                                            ${editMode ? 'cursor-grab active:cursor-grabbing' : ''}
+                                            ${item.semester === 'MC' ? 'border-l-4 border-l-emerald-500' :
+                                              (item.semester === 'PPG' ? 'border-l-4 border-l-indigo-500' : 'border-l-4 border-l-blue-500')}
+                                        `}
+                                    >
+                                        {item.subject === "Belum Ada Jadwal" ? (
+                                            <div className="text-center w-full">
+                                                <div className="text-xs italic">Kosong</div>
+                                                {editMode && <div className="text-[10px] text-sky-400 font-bold mt-1">Klik untuk Isi</div>}
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <span className="text-xs font-mono font-bold bg-gray-50 px-2 py-1 rounded text-gray-700 shadow-[inset_0_1px_2px_rgba(0,0,0,0.4)]">{item.time}</span>
+                                                    <span className="text-xs font-bold bg-sky-600 text-white px-2 py-1 rounded shadow-[0_2px_8px_rgba(14,165,233,0.3)]">{item.room}</span>
+                                                </div>
+                                                <div className="font-bold text-sm text-gray-800 mb-2 leading-tight">{item.subject}</div>
+                                                <div className="flex items-start gap-1 mb-2">
+                                                    <User className="w-3 h-3 text-gray-500 mt-0.5 flex-shrink-0" />
+                                                    <span className="text-xs text-gray-600 leading-tight">{item.lecturer}</span>
+                                                </div>
+                                                <div className="text-xs text-gray-500">{item.sks} SKS</div>
+
+                                                {/* Edit/Delete Buttons Overlay */}
+                                                {editMode && (
+                                                    <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                                                        <button
+                                                            onClick={(e) => handleEditClick(e, item)}
+                                                            className="bg-white border-2 border-blue-400 rounded-full p-1 shadow-md hover:bg-blue-50"
+                                                        >
+                                                            <Edit3 className="w-3 h-3 text-blue-600" />
+                                                        </button>
+                                                        <button
+                                                            onClick={(e) => handleDelete(e, item)}
+                                                            className="bg-white border-2 border-red-400 rounded-full p-1 shadow-md hover:bg-red-50"
+                                                        >
+                                                            <Trash2 className="w-3 h-3 text-red-600" />
+                                                        </button>
+                                                    </div>
+                                                )}
+                                                {editMode && <GripVertical className="absolute bottom-1 right-1 w-3 h-3 text-gray-400" />}
+                                            </>
+                                        )}
+                                    </div>
+                                ))}
+                                {editMode && (
+                                    <button
+                                        onClick={() => handleAddClick(col)}
+                                        className="w-full py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:text-blue-600 hover:border-blue-400 hover:bg-blue-50 transition-all flex items-center justify-center gap-2"
+                                    >
+                                        <PlusCircle className="w-5 h-5" /> Tambah Jadwal
+                                    </button>
+                                )}
+                                {masterGrouped[col].length === 0 && !editMode && (
+                                    <div className="text-center text-gray-400 text-sm py-8 border-2 border-dashed border-gray-200 rounded-lg">Kosong</div>
+                                )}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+      )}
+
+      {/* --- CLASS VIEW --- */}
+      {viewMode === 'class' && (
+          <div className="bg-gradient-to-br from-white to-slate-50 rounded-xl shadow-[0_8px_16px_rgba(0,0,0,0.15)] border-4 border-slate-300 p-6 print:hidden">
+            <div className="grid grid-cols-5 gap-4">
+                {DAYS.map(day => (
+                  <div key={day} className="space-y-3">
+                    <div className="bg-gradient-to-b from-sky-500 to-sky-700 text-white text-center py-4 rounded-lg shadow-[0_4px_8px_rgba(0,0,0,0.3),inset_0_2px_4px_rgba(255,255,255,0.3)] font-bold mb-4 border-3 border-sky-800">
+                      {day.toUpperCase()}
+                    </div>
+                    
+                    {classScheduleByDay[day].length === 0 ? (
+                      <div className="text-center text-gray-500 italic text-sm py-8 border-dashed border-2 border-white/30 rounded-lg">
+                        Tidak ada jadwal
+                      </div>
+                    ) : (
+                      classScheduleByDay[day].map((slot) => (
+                        <div 
+                            key={slot.id} 
+                            draggable={editMode}
+                            onDragStart={(e) => handleDragStart(e, slot)}
+                            onDragOver={handleDragOver}
+                            onDrop={(e) => handleDrop(e, slot)}
+                            onDragEnd={handleDragEnd}
+                            className={`
+                                ${styles.slotCard} group 
+                                ${draggedItem?.id === slot.id ? styles.slotCardDragging : ''}
+                                ${editMode ? 'cursor-grab active:cursor-grabbing' : ''}
+                            `}
+                        >
+                          <div className="flex justify-between items-center mb-2 border-b border-gray-300/50 pb-1">
+                            <div className={`${styles.inset} px-2 py-0.5 text-[10px] font-mono text-gray-700 font-bold`}>
+                              {slot.time}
+                            </div>
+                            <div className="text-[10px] bg-sky-600 text-white px-1.5 rounded font-bold shadow-[0_2px_4px_rgba(14,165,233,0.3)]">{slot.room}</div>
+                          </div>
+                          <div className="font-bold text-gray-800 text-sm leading-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] mb-2 h-10 line-clamp-2">{slot.subject}</div>
+                          <div className="flex flex-col gap-1">
+                              <div className="flex items-start gap-1">
+                                 <User className="w-3 h-3 text-gray-500 mt-0.5 flex-shrink-0" />
+                                 <span className="text-xs text-gray-600 font-medium leading-tight">{slot.lecturer}</span>
+                              </div>
+                              <div className="text-[10px] text-right text-gray-500 font-mono">{slot.sks} SKS</div>
+                          </div>
+
+                           {/* Edit/Delete Buttons Overlay */}
+                            {editMode && (
+                                <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                                    <button
+                                        onClick={(e) => handleEditClick(e, slot)}
+                                        className="bg-white border-2 border-blue-400 rounded-full p-1 shadow-md hover:bg-blue-50"
+                                    >
+                                        <Edit3 className="w-3 h-3 text-blue-600" />
+                                    </button>
+                                    <button
+                                        onClick={(e) => handleDelete(e, slot)}
+                                        className="bg-white border-2 border-red-400 rounded-full p-1 shadow-md hover:bg-red-50"
+                                    >
+                                        <Trash2 className="w-3 h-3 text-red-600" />
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+      )}
+
+      {/* --- PRINT ONLY VIEW --- */}
+      <div className="print-only w-full bg-white p-4">
+         <div className="text-center mb-6">
+            <h1 className="text-2xl font-bold uppercase">JADWAL KULIAH TERPADU</h1>
+            <p className="text-sm">Kelas MC (Senin) & Semester 2, 4 (Selasa-Jumat) + PPG</p>
+         </div>
+         {DAYS.map(day => {
+             // Define Columns Based on Day
+             let columns = [];
+             if (day === 'Senin') {
+                 columns = ['MC-A', 'MC-B', 'MC-C', 'MC-D', 'MC-E', 'MC-F', 'MC-G', 'MC-H', 'MC-I', 'MC-J', 'PPG'];
+             } else {
+                 columns = ['2-A', '2-B', '2-C', '2-D', '4-A', '4-B', '4-C', '4-D', 'PPG'];
+             }
+
+             // Pre-process data for printing
+             const dayData = {};
+             columns.forEach(col => dayData[col] = []);
+             scheduleData.filter(i => i.day === day && i.subject !== "Belum Ada Jadwal").forEach(item => {
+                 let key;
+                 if(item.semester === "MC") {
+                     key = `MC-${item.class_name}`;
+                 } else if (item.semester === "PPG") {
+                     key = "PPG";
+                 } else {
+                     key = `${item.semester}-${item.class_name}`;
+                 }
+                 
+                 if(dayData[key]) dayData[key].push(item);
+             });
+             // Sort by time
+             columns.forEach(col => dayData[col].sort((a,b) => a.time.localeCompare(b.time)));
+
+             return (
+                 <div key={day} className="mb-8 break-inside-avoid">
+                     <h3 className="bg-gray-200 font-bold p-2 border border-black mb-2 text-center">{day.toUpperCase()}</h3>
+                     <div 
+                        className="grid gap-1 text-[8px]"
+                        style={{ gridTemplateColumns: `repeat(${columns.length}, minmax(0, 1fr))` }}
+                     >
+                          {columns.map(col => (
+                              <div key={col} className="border border-black">
+                                  <div className="bg-gray-100 text-center font-bold border-b border-black p-1 truncate">
+                                      {col}
+                                  </div>
+                                  <div className="p-1 min-h-[50px]">
+                                      {dayData[col].map((item, idx) => (
+                                          <div key={idx} className="mb-2 pb-1 border-b border-gray-300 last:border-0">
+                                              <div className="font-bold">{item.time}</div>
+                                              <div className="line-clamp-2">{item.subject}</div>
+                                              <div className="italic text-[7px] truncate">{item.lecturer.split('/')[0]}</div>
+                                              <div className="font-bold bg-gray-800 text-white inline-block px-1 mt-1 border border-black">{item.room}</div>
+                                          </div>
+                                      ))}
+                                  </div>
+                              </div>
+                          ))}
+                     </div>
+                 </div>
+             );
+         })}
+      </div>
+
+      {/* --- EDIT MODAL --- */}
+      {editingItem && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 no-print">
+            <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl shadow-[0_8px_32px_rgba(0,0,0,0.8)] w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200 border-2 border-gray-200">
+                <div className="bg-gradient-to-r from-sky-600 to-sky-700 px-6 py-4 border-b-2 border-gray-200 flex justify-between items-center shadow-[0_4px_12px_rgba(14,165,233,0.3)]">
+                    <h3 className="font-bold text-lg text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]">
+                        {editingItem.id === 0 ? "✨ Tambah Jadwal Baru" : "✏️ Edit Jadwal"}
+                    </h3>
+                    <button onClick={() => setEditingItem(null)}><X className="w-5 h-5 text-gray-700 hover:text-red-400"/></button>
+                </div>
+                <div className="p-6 space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-xs font-bold text-gray-600 uppercase mb-2">Semester / Tipe</label>
+                            <select
+                                className="w-full bg-gray-50 border-2 border-gray-200 rounded-lg p-2 text-sm font-bold text-gray-700 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none shadow-[inset_0_2px_4px_rgba(0,0,0,0.4)]"
+                                value={editingItem.semester}
+                                onChange={(e) => setEditingItem({...editingItem, semester: e.target.value === '2' || e.target.value === '4' ? parseInt(e.target.value) : e.target.value})}
+                            >
+                                <option value={2} className="bg-white">Semester 2</option>
+                                <option value={4} className="bg-white">Semester 4</option>
+                                <option value="MC" className="bg-white">Kelas MC</option>
+                                <option value="PPG" className="bg-white">PPG</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-gray-600 uppercase mb-2">Kelas</label>
+                            <select
+                                className="w-full bg-gray-50 border-2 border-gray-200 rounded-lg p-2 text-sm font-bold text-gray-700 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none shadow-[inset_0_2px_4px_rgba(0,0,0,0.4)]"
+                                value={editingItem.class_name}
+                                onChange={(e) => setEditingItem({...editingItem, class_name: e.target.value})}
+                            >
+                                {['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'].map(c => (
+                                    <option key={c} value={c} className="bg-white">{c}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label className="block text-xs font-bold text-gray-600 uppercase mb-2">Mata Kuliah</label>
+                        <input
+                            type="text"
+                            className="w-full bg-gray-50 border-2 border-gray-200 rounded-lg p-2 text-sm font-bold text-gray-700 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none placeholder-slate-500 shadow-[inset_0_2px_4px_rgba(0,0,0,0.4)]"
+                            value={editingItem.subject}
+                            placeholder="Contoh: Micro Teaching"
+                            onChange={(e) => setEditingItem({...editingItem, subject: e.target.value})}
+                        />
+                    </div>
+                     <div>
+                        <label className="block text-xs font-bold text-gray-600 uppercase mb-2">Dosen Pengampu</label>
+                        <input
+                            type="text"
+                            className="w-full bg-gray-50 border-2 border-gray-200 rounded-lg p-2 text-sm text-gray-700 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none placeholder-slate-500 shadow-[inset_0_2px_4px_rgba(0,0,0,0.4)]"
+                            value={editingItem.lecturer}
+                            placeholder="Nama Dosen"
+                            onChange={(e) => setEditingItem({...editingItem, lecturer: e.target.value})}
+                        />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-xs font-bold text-gray-600 uppercase mb-2">Hari</label>
+                            <select
+                                className="w-full bg-gray-50 border-2 border-gray-200 rounded-lg p-2 text-sm text-gray-700 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none shadow-[inset_0_2px_4px_rgba(0,0,0,0.4)]"
+                                value={editingItem.day}
+                                onChange={(e) => setEditingItem({...editingItem, day: e.target.value})}
+                            >
+                                {DAYS.map(d => <option key={d} value={d} className="bg-white">{d}</option>)}
+                            </select>
+                        </div>
+                         <div>
+                            <label className="block text-xs font-bold text-gray-600 uppercase mb-2">Jam</label>
+                            <input
+                                type="text"
+                                className="w-full bg-gray-50 border-2 border-gray-200 rounded-lg p-2 text-sm text-gray-700 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none placeholder-slate-500 shadow-[inset_0_2px_4px_rgba(0,0,0,0.4)]"
+                                value={editingItem.time}
+                                placeholder="00.00-00.00"
+                                onChange={(e) => setEditingItem({...editingItem, time: e.target.value})}
+                            />
+                        </div>
+                    </div>
+                     <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-xs font-bold text-gray-600 uppercase mb-2">Ruang</label>
+                            <input
+                                type="text"
+                                className="w-full bg-gray-50 border-2 border-gray-200 rounded-lg p-2 text-sm text-gray-700 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none placeholder-slate-500 shadow-[inset_0_2px_4px_rgba(0,0,0,0.4)]"
+                                value={editingItem.room}
+                                placeholder="R..."
+                                onChange={(e) => setEditingItem({...editingItem, room: e.target.value})}
+                            />
+                        </div>
+                         <div>
+                            <label className="block text-xs font-bold text-gray-600 uppercase mb-2">SKS</label>
+                            <input
+                                type="text"
+                                className="w-full bg-gray-50 border-2 border-gray-200 rounded-lg p-2 text-sm text-gray-700 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none placeholder-slate-500 shadow-[inset_0_2px_4px_rgba(0,0,0,0.4)]"
+                                value={editingItem.sks}
+                                placeholder="2"
+                                onChange={(e) => setEditingItem({...editingItem, sks: e.target.value})}
+                            />
+                        </div>
+                    </div>
+                </div>
+                <div className="bg-gray-50 px-6 py-4 border-t-2 border-gray-200 flex justify-end gap-2">
+                    <button onClick={() => setEditingItem(null)} className={`${styles.btnSecondary} px-4 py-2 text-sm`}>Batal</button>
+                    <button onClick={saveEdit} className={`${styles.btnPrimary} px-4 py-2 text-sm flex items-center gap-2`}>
+                        <Save className="w-4 h-4" /> Simpan
+                    </button>
+                </div>
+            </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TeacherDatabase({ scheduleData }) {
+  // ... existing TeacherDatabase code ...
+  // Re-implementing briefly to ensure functionality isn't lost if "existing code" block was small
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedTeacher, setSelectedTeacher] = useState(null);
+
+  const lecturers = useMemo(() => {
+    const splitList = new Set();
+    scheduleData.forEach(item => {
+        const parts = item.lecturer.split(" / ");
+        parts.forEach(p => splitList.add(p.trim()));
+    });
+    return Array.from(splitList).sort();
+  }, [scheduleData]);
+
+  const filteredLecturers = lecturers.filter(l => 
+    l.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const getTeacherSchedule = (teacherName) => {
+    const weekly = { Senin: [], Selasa: [], Rabu: [], Kamis: [], Jumat: [] };
+    scheduleData.forEach(item => {
+        if (item.lecturer.includes(teacherName)) {
+            if (weekly[item.day]) {
+                weekly[item.day].push(item);
+            }
+        }
+    });
+    Object.keys(weekly).forEach(day => weekly[day].sort((a, b) => a.time.localeCompare(b.time)));
+    return weekly;
+  };
+
+  return (
+    <div className="space-y-8">
+      <div className={`${styles.card} p-6 flex justify-between items-end no-print`}>
+        <div>
+          <h2 className="text-3xl font-extrabold text-gray-800 drop-shadow-[0_2px_8px_rgba(14,165,233,0.5)]">👨‍🏫 Data Dosen</h2>
+          <p className="text-gray-600 font-medium">Cari dan cetak jadwal mengajar.</p>
+        </div>
+        <div className={`${styles.inset} w-72 flex items-center px-3 py-2`}>
+           <Search className="w-5 h-5 text-gray-500 mr-2" />
+           <input
+             type="text"
+             placeholder="Cari Nama Dosen..."
+             value={searchTerm}
+             onChange={e => setSearchTerm(e.target.value)}
+             className="bg-transparent w-full outline-none text-gray-700 font-bold placeholder-slate-500"
+           />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 no-print">
+        {filteredLecturers.map((teacher, idx) => (
+          <div key={idx} className={`${styles.card} p-5 group hover:-translate-y-1 transition-transform duration-300 cursor-pointer`}>
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <h3 className="font-bold text-lg text-gray-800 line-clamp-2">{teacher}</h3>
+                <span className="inline-block bg-sky-600 text-white text-xs px-2 py-1 rounded-lg shadow-[0_2px_8px_rgba(14,165,233,0.4)] font-bold mt-2">
+                   DOSEN
+                </span>
+              </div>
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-sky-600 to-sky-700 shadow-[0_4px_12px_rgba(14,165,233,0.4)] flex items-center justify-center text-white font-extrabold text-xl border border-sky-500">
+                {teacher.charAt(0)}
+              </div>
+            </div>
+            <button 
+              onClick={() => setSelectedTeacher(teacher)}
+              className={`${styles.btnSecondary} w-full flex items-center justify-center gap-2 text-sm`}
+            >
+              <FileText className="w-4 h-4" /> LIHAT JADWAL
+            </button>
+          </div>
+        ))}
+      </div>
+
+      {/* MODAL / PREVIEW */}
+      {selectedTeacher && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 print:p-0 print:bg-white print:static print:backdrop-blur-none">
+          <div className={`${styles.card} w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-white/30 print:shadow-none print:border-none print:max-w-none print:max-h-none print:rounded-none print:bg-white backdrop-blur-xl`}>
+            
+            {/* Header Modal */}
+            <div className="flex justify-between items-center p-6 border-b border-white/30 bg-gradient-to-r from-blue-500/30 to-purple-500/30 backdrop-blur-xl no-print rounded-t-2xl">
+              <h3 className="text-xl font-bold text-gray-800 drop-shadow">📋 Jadwal Mengajar</h3>
+              <div className="flex gap-3">
+                <button onClick={() => window.print()} className={`${styles.btnPrimary} flex gap-2 items-center text-sm`}>
+                  <Printer className="w-4 h-4" /> CETAK
+                </button>
+                <button onClick={() => setSelectedTeacher(null)} className={`${styles.btnSecondary} flex gap-2 items-center text-sm`}>
+                  <X className="w-4 h-4" /> TUTUP
+                </button>
+              </div>
+            </div>
+
+            {/* Printable Area */}
+            <div className="p-10 bg-white print:p-0 font-serif text-black relative">
+              <div className="text-center mb-8 border-b-4 border-double border-black pb-4">
+                <h1 className="text-2xl font-bold uppercase tracking-wider">JADWAL MENGAJAR DOSEN</h1>
+                <h2 className="text-xl font-bold">UNIVERSITAS</h2>
+                <p className="mt-2 text-sm italic">Semester Genap 2026</p>
+              </div>
+
+              <div className="mb-8 text-sm">
+                  <p className="mb-1"><span className="font-bold inline-block w-28">NAMA DOSEN</span> : {selectedTeacher}</p>
+                  <p className="text-gray-500">Dicetak pada: {new Date().toLocaleDateString()}</p>
+              </div>
+
+              <table className="w-full border-collapse border border-black text-sm mb-12">
+                <thead>
+                  <tr className="bg-gray-200">
+                    <th className="border border-black p-3 w-32">HARI</th>
+                    <th className="border border-black p-3 text-left">MATA KULIAH & KELAS</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {DAYS.map(day => {
+                    const schedule = getTeacherSchedule(selectedTeacher)[day];
+                    return (
+                      <tr key={day}>
+                        <td className="border border-black p-3 font-bold text-center align-top bg-gray-50">{day}</td>
+                        <td className="border border-black p-3">
+                          {schedule.length === 0 ? (
+                            <span className="italic text-gray-400">Tidak ada jadwal</span>
+                          ) : (
+                            <div className="grid grid-cols-1 gap-2">
+                              {schedule.map((slot, idx) => (
+                                <div key={idx} className="border border-gray-300 px-3 py-2 bg-gray-50 rounded flex justify-between items-center print:border-black print:bg-white">
+                                  <div>
+                                      <div className="font-bold text-blue-900 print:text-black">{slot.subject}</div>
+                                      <div className="text-xs text-gray-600">
+                                        {slot.semester === "PPG" ? "Kelas PPG" : (slot.semester === "MC" ? `Kelas MC-${slot.class_name}` : `Sem ${slot.semester} - Kelas ${slot.class_name}`)} 
+                                        | {slot.sks} SKS | Ruang {slot.room}
+                                      </div>
+                                  </div>
+                                  <div className="font-mono font-bold text-xs bg-black text-white px-2 py-1 rounded print:border print:border-black print:bg-gray-200 print:text-black">
+                                      {slot.time}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+
+              <div className="flex justify-end mt-16 print:mt-10">
+                 <div className="text-center w-64">
+                    <p className="mb-20">Mengetahui,<br/>Kaprodi</p>
+                    <p className="font-bold underline decoration-2 underline-offset-4">.........................</p>
+                    <p>NIP. .........................</p>
+                 </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+        // Error Boundary Component
+        class ErrorBoundary extends React.Component {
+          constructor(props) {
+            super(props);
+            this.state = { hasError: false, error: null };
+          }
+
+          static getDerivedStateFromError(error) {
+            return { hasError: true, error };
+          }
+
+          componentDidCatch(error, errorInfo) {
+            console.error('Error caught:', error, errorInfo);
+          }
+
+          render() {
+            if (this.state.hasError) {
+              return (
+                <div style={{ padding: '20px', background: '#fee', color: '#c00' }}>
+                  <h1>❌ Error Terjadi!</h1>
+                  <pre style={{ background: 'white', padding: '10px', overflow: 'auto' }}>
+                    {this.state.error?.toString()}
+                  </pre>
+                  <p>Buka Console (F12) untuk detail lengkap.</p>
+                </div>
+              );
+            }
+            return this.props.children;
+          }
+        }
+
+        try {
+          const root = ReactDOM.createRoot(document.getElementById('root'));
+          root.render(
+            <ErrorBoundary>
+              <App />
+            </ErrorBoundary>
+          );
+          console.log('✅ App rendered successfully');
+        } catch (error) {
+          console.error('❌ Render error:', error);
+          document.getElementById('root').innerHTML = `
+            <div style="padding: 20px; background: #fee; color: #c00;">
+              <h1>❌ Error saat render!</h1>
+              <pre style="background: white; padding: 10px;">${error.toString()}</pre>
+            </div>
+          `;
+        }
+    </script>
+</body>
+</html>
